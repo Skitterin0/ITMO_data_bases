@@ -1,0 +1,22 @@
+with Products(ProductId, Sales, Customers)
+         as (select sod.ProductID, sum(OrderQty) as Sales, count(distinct soh.CustomerID) as Customers
+             from Sales.SalesOrderHeader as soh
+                      join Sales.SalesOrderDetail as sod
+                           on soh.SalesOrderID = sod.SalesOrderID
+             group by sod.ProductID),
+     CategoryProducts(ProductId, ProductCategoryId)
+         as (select p.ProductID, psc.ProductCategoryID
+             from Production.Product as p
+                      join Production.ProductSubcategory as psc
+                           on p.ProductSubcategoryID = psc.ProductSubcategoryID),
+     CategoryCustomers(ProductCategoryId, Customers)
+         as (select cp.ProductCategoryId, sum(p.Customers) as Customers
+             from CategoryProducts as cp
+             join Products as p on cp.ProductId = p.ProductId
+             group by cp.ProductCategoryId)
+select p.ProductId, p.Sales, cast(p.Customers as float) / cast(cc.Customers as float)
+from Products as p
+         join CategoryProducts as cp
+              on p.ProductId = cp.ProductId
+         join CategoryCustomers as cc
+              on cp.ProductCategoryId = cc.ProductCategoryId

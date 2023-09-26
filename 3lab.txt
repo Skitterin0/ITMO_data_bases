@@ -1,0 +1,66 @@
+-- 1
+SELECT p.Name, pc.Name
+FROM Production.Product as p
+JOIN Production.ProductSubcategory as psc
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+JOIN Production.ProductCategory as pc
+ON psc.ProductCategoryID = pc.ProductCategoryID
+WHERE p.Color = 'RED' AND p.ListPrice >= 100;
+
+-- 2
+SELECT psc1.Name
+FROM Production.ProductSubcategory as psc1
+JOIN Production.ProductSubcategory as psc2
+ON psc1.Name = psc2.Name
+WHERE psc1.ProductSubcategoryID != psc2.ProductSubcategoryID;
+
+-- 3
+SELECT pc.Name, COUNT(*)
+FROM Production.Product as p
+JOIN Production.ProductSubcategory as psc
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+JOIN Production.ProductCategory as pc
+ON psc.ProductCategoryID = pc.ProductCategoryID
+GROUP BY pc.Name;
+
+-- 4
+Select psc.Name, COUNT(DISTINCT p.ProductID)
+FROM Production.Product as p
+JOIN Production.ProductSubcategory as psc
+on p.ProductSubcategoryID = psc.ProductSubcategoryID
+GROUP BY psc.Name;
+
+-- 5
+SELECT TOP 3 psc.Name
+FROM Production.Product as p
+JOIN Production.ProductSubcategory as psc
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+GROUP BY psc.Name
+ORDER BY COUNT(p.ProductID) desc;
+
+-- 6
+SELECT psc.Name
+FROM Production.Product as p
+JOIN Production.ProductSubcategory as psc
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+WHERE p.Color = 'RED'
+GROUP BY psc.Name;
+
+-- 7
+SELECT v.Name, COUNT(*) as 'Products'
+FROM Purchasing.ProductVendor as pv
+JOIN Purchasing.Vendor V on V.BusinessEntityID = pv.BusinessEntityID
+GROUP BY v.Name;
+
+-- 8
+SELECT p.Name, count(distinct pv.BusinessEntityID)
+FROM Purchasing.ProductVendor as pv
+JOIN Production.Product as p on pv.ProductID = p.ProductID
+Group By p.Name
+having count(distinct pv.BusinessEntityID) > 1
+
+-- 9
+select sod.ProductID, sum(OrderQty)
+from sales.SalesOrderDetail as sod
+group by sod.ProductID
+

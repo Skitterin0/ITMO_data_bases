@@ -1,0 +1,9 @@
+
+select psc.Name
+from Production.ProductSubcategory as psc
+where psc.ProductSubcategoryID = (
+    select top 1 p.ProductSubcategoryID
+    from Production.Product as p
+    group by p.ProductSubcategoryID
+    order by count(p.ProductID)
+    );

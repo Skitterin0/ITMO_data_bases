@@ -1,0 +1,6 @@
+select v.Name, count(*) as 'Quantity'
+from Purchasing.ProductVendor as pv
+join Purchasing.Vendor as v
+on pv.BusinessEntityID = v.BusinessEntityID
+group by v.Name
+order by count(distinct ProductID) asc

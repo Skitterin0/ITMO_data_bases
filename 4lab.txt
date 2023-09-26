@@ -1,0 +1,36 @@
+select p.Name, p.ProductID
+from Production.Product as p
+where p.ProductID = (
+    select top 1 sod.ProductID
+    from Sales.SalesOrderDetail as sod
+    group by sod.ProductID
+    order by sum(sod.OrderQty)
+    );
+
+select p.FirstName, p.LastName
+from Person.Person as p
+where p.BusinessEntityID = (
+    select c.PersonID
+    from Sales.Customer as c
+    where c.CustomerID = (
+        select soh.CustomerID
+        from Sales.SalesOrderHeader as soh
+        where soh.SalesOrderID = (
+            select top 1 sod.SalesOrderID
+            from Sales.SalesOrderDetail as sod
+            group by sod.SalesOrderID
+            order by sum(sod.OrderQty * sod.UnitPrice)
+            )
+        )
+    );
+
+select p.Name, p.ProductID
+from Production.Product as p
+where p.ProductID in (
+    select sod.ProductID
+    from Sales.SalesOrderDetail as sod
+    join Sales.SalesOrderHeader as soh
+    on sod.SalesOrderID = soh.SalesOrderID
+    group by sod.ProductID
+    having count(distinct CustomerID) = 1
+    );

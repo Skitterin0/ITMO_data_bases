@@ -1,0 +1,20 @@
+with BoughtCount(CustomerID, CategoryID, Counter)
+    as ( select distinct soh.CustomerID, psc.ProductCategoryID,
+                count(sod.ProductID) over (partition by CustomerID, ProductCategoryID)
+         from Sales.SalesOrderDetail as sod
+         join Sales.SalesOrderHeader as soh
+         on sod.SalesOrderID = soh.SalesOrderID
+         join Production.Product as p
+         on sod.ProductID = p.ProductID
+         join Production.ProductSubcategory as psc
+         on p.ProductSubcategoryID = psc.ProductSubcategoryID),
+     CategoryProducts(CategoryID, Counter)
+    as ( select distinct psc.ProductCategoryID,
+            count( p.ProductID) over (partition by ProductCategoryID)
+         from Production.Product as p
+         join Production.ProductSubcategory as psc
+         on p.ProductSubcategoryID = psc.ProductSubcategoryID)
+select bc.CustomerID, bc.CategoryID, (1. * bc.Counter)/ (1. * cp.Counter - 1. * bc.Counter) as difference
+from BoughtCount as bc
+join CategoryProducts as cp
+on bc.CategoryID = cp.CategoryID

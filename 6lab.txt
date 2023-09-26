@@ -1,0 +1,43 @@
+-- 1
+select sod.SalesOrderID, sod.ProductID, sod.LineTotal,
+       sod.LineTotal/sum(LineTotal) over (partition by SalesOrderID) as SalesPart,
+       sum(LineTotal) over (partition by SalesOrderID) as SaleTotal
+from Sales.SalesOrderDetail as sod;
+
+-- 2
+select p.ProductID, p.ListPrice,
+       p.ListPrice - min(p.ListPrice) over (partition by ProductSubcategoryID) as Difference
+from Production.Product as p
+where p.ListPrice <> 0;
+
+-- 3
+select soh.CustomerID,
+       soh.SalesOrderID,
+       row_number() over (partition by CustomerID order by soh.OrderDate) as Sale
+from Sales.SalesOrderHeader as soh
+order by soh.CustomerID, soh.SalesOrderID;
+
+-- 4.1
+select tmp.ProductID
+from (
+        select ProductID, ListPrice,
+        avg(ListPrice) over (partition by ProductSubcategoryID) as avgPrice
+        from Production.Product
+     ) as tmp
+where tmp.ListPrice > tmp.avgPrice;
+
+-- 4.2
+select ProductID
+from Production.Product
+where ListPrice > ( select AVG(ListPrice)
+                    from Production.Product AS p
+                    where p.ProductSubcategoryID = Product.ProductSubcategoryID);
+
+-- 5
+select p.ProductID, p.Name,
+       avg(sod.OrderQty) over (partition by p.ProductID order by soh.OrderDate desc rows between current row and 2 following) as AvgCount
+from Production.Product as p
+join Sales.SalesOrderDetail as sod
+on p.ProductID = sod.ProductID
+join Sales.SalesOrderHeader as soh
+on sod.SalesOrderID = soh.SalesOrderID;

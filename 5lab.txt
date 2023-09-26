@@ -1,0 +1,58 @@
+-- 1
+with Customer_products (SalesPersonID, TotalProducts, OrderID)
+as (
+    select CustomerID, count(*), sod.SalesOrderID
+    from Sales.SalesOrderHeader as soh
+    join Sales.SalesOrderDetail as sod
+    on soh.SalesOrderID = sod.SalesOrderID
+    group by sod.SalesOrderID, CustomerID
+    )
+select SalesPersonID, avg(TotalProducts)
+from Customer_products
+group by SalesPersonID
+order by SalesPersonID
+
+select t.Id, avg(t.C)
+from (select soh.CustomerID as Id, count(*) as C, soh.SalesOrderID as OrderId
+      from Sales.SalesOrderHeader as soh
+      join Sales.SalesOrderDetail as sod
+      on soh.SalesOrderID = sod.SalesOrderID
+      group by soh.SalesOrderID, CustomerID
+      ) as t
+group by t.Id
+order by t.Id
+
+-- 2
+with
+    ProductsByType (PersonId, Product, Quantity) as (
+        select soh.CustomerID, sod.ProductID, count(*) as Quantity
+        from Sales.SalesOrderHeader as soh
+        join Sales.SalesOrderDetail as sod
+        on soh.SalesOrderID = sod.SalesOrderID
+        group by soh.CustomerID, sod.ProductID
+    ),
+    TotalProducts (PersonId, Quantity) as (
+        select soh.CustomerID, sum(OrderQty) as Quantity
+        from Sales.SalesOrderDetail as sod
+        join Sales.SalesOrderHeader as soh
+        on sod.SalesOrderID = soh.SalesOrderID
+        group by soh.CustomerID
+    )
+select pbt.PersonId, pbt.Product, round(cast(pbt.Quantity as float)/cast(tp.Quantity as float), 3)
+from ProductsByType as pbt
+join TotalProducts as tp
+on pbt.PersonId = tp.PersonId
+
+-- 3
+with
+    ProductsByPerson (ProductId, Customers, Orders) as (
+        select sod.ProductID, count(distinct soh.CustomerID) as Customers, count(*) as Orders
+        from Sales.SalesOrderDetail as sod
+        join Sales.SalesOrderHeader as soh
+        on sod.SalesOrderID = soh.SalesOrderID
+        group by sod.ProductID
+    )
+select p.ProductID, p.Name, pbp.Customers, pbp.Orders
+from ProductsByPerson as pbp
+join Production.Product as p
+on pbp.ProductId = p.ProductID
